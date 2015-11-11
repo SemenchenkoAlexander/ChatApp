@@ -37,9 +37,9 @@ public class LabelFrame extends JFrame  {
 		
 		Color col = new Color(90, 75, 80);
 		
-		String[] elements = new String[] {"Саша", "Леша", "Макс"};
+		String[] elements = new String[] {"пїЅпїЅпїЅпїЅ", "пїЅпїЅпїЅпїЅ", "пїЅпїЅпїЅпїЅ"};
 				
-		lable1 = new JLabel("Логин");
+		lable1 = new JLabel("пїЅпїЅпїЅпїЅпїЅ");
 		lable1.setFont(font);
 		lable1.setForeground(Color.blue);
 		lable1.setBounds(45, 40, 60, 30);
@@ -59,8 +59,7 @@ public class LabelFrame extends JFrame  {
 		JComboBox combo  = new JComboBox(elements);
 		combo.setBounds(350, 40, 140, 30);
 		
-		button2 = new JButton("Войти");
-		butto
+		button2 = new JButton("пїЅпїЅпїЅпїЅпїЅ");
 		button2.setFont(font);
 		button2.addActionListener(new ActionListener( ) {
         	public void actionPerformed(ActionEvent ae) {
@@ -74,10 +73,10 @@ public class LabelFrame extends JFrame  {
 		textField.setHorizontalAlignment(JTextField.LEFT);
 		
 		JTextArea textArea = new JTextArea(5, 20);
-		textArea.setLineWrap(true);//пособность переносить на другие линии!
-		textArea.setWrapStyleWord(true);//способность переносить слова на соседнюю строку целиком
+		textArea.setLineWrap(true);//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ!
+		textArea.setWrapStyleWord(true);//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 		//textArea.setFont(font);
-		//Управление вводимого текста 
+		//пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ 
 		textField.setBounds(45, 370, 500, 75);
 		
 		
@@ -85,7 +84,7 @@ public class LabelFrame extends JFrame  {
 		panel.setLayout(null);
 		panel.setBackground(Color.white);
 		
-		button1 = new JButton("Отправить");
+		button1 = new JButton("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
 		button1.setLocation(560, 414);
 		button1.setSize(100, 30);
 		button1.setBackground(Color.green);
