@@ -1,5 +1,17 @@
-/**
- * Created by Alexander on 10.11.2015.
- */
+
 public class Command {
+
+    protected CommandType type;
+
+    public Command() {
+    }
+
+    public Command(CommandType t)
+    {
+        type = t;
+    }
+    public static enum CommandType
+    {
+        ACCEPT, DISCONNECT, MESSAGE, NICK, REJECT;
+    }
 }
