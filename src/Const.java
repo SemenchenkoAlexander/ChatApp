@@ -4,4 +4,5 @@
 public class Const {
     public static final int HEIGHT = 497;
     public static final int WIDTH = 916;
+    public static final String DEFAULT_VER = "ChatApp 2015";
 }

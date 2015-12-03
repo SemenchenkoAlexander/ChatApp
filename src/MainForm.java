@@ -59,7 +59,7 @@ public class MainForm extends JFrame {
         apply.setText("Apply");
         apply.setBounds(180, 400, 100, 30);
         apply.setFont(text.getFont().deriveFont(15f));
-        apply.setBorder(BorderFactory.createEmptyBorder(2, 2,0,2);
+        apply.setBorder(BorderFactory.createEmptyBorder(2, 2,0, 2 ));
         
         this.add(apply);
 
@@ -67,20 +67,17 @@ public class MainForm extends JFrame {
         connectButton.setBounds(475, 400, 100, 30);
         connectButton.setFont(text.getFont().deriveFont(15f));
         connectButton.setBorder(BorderFactory.createEmptyBorder(2, 2, 0, 2));
-        connectButton.setEnabled(false);
         this.add(connectButton);
 
         disconnectButton.setText("Disconnect");
         disconnectButton.setBounds(770, 400, 100, 30);
         disconnectButton.setFont(text.getFont().deriveFont(15f));
         disconnectButton.setBorder(BorderFactory.createEmptyBorder(2, 2, 0, 2));
-        disconnectButton.setEnabled(false);
         this.add(disconnectButton);
 
         remoteAddr.setBounds(325 , 400, 150, 30);
         remoteAddr.setFont(text.getFont().deriveFont(20f));
         remoteAddr.setBorder(BorderFactory.createEmptyBorder(2, 2, 0, 2));
-        remoteAddr.setEnabled(false);
         this.add(remoteAddr);
 
         remoteNick.setBounds(620, 400, 150, 30);
