@@ -3,7 +3,7 @@
  */
 public class Command {
 
-  private  CommandType type;
+  public CommandType type;
     public Command(){
 
     }
@@ -40,6 +40,12 @@ public class Command {
             public String toString() {
                 return("Rejected");
             }
-        }
-    };
+        },
+        RECEIVE{
+            @Override
+            public String toString() {
+                return("Receved");
+            }
+    }, NULL;
+    }
 }

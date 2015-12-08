@@ -21,6 +21,11 @@ public class CallListener {
         lastCon = new Connection(socket);
         return lastCon;
     }
+
+    public void setNick(String localNick) {
+        this.localNick = localNick;
+    }
+
     public boolean isBusy(){
         return this.busy;
     }

@@ -13,16 +13,20 @@ public class CallListenerThread extends Observable implements Runnable {
         this.callListener = callListener;
     }
 
+    public CallListenerThread() {
+
+    }
+
     @Override
     public void run() {
         while (Thread.currentThread().isAlive()){
             try{
                 Connection connection = callListener.getConnection();
                 if (callListener.isBusy()){
-                    connection.sendNick(Const.DEFAULT_VER, callListener.getLocalNick(), true);
+                    connection.sendNick(Const.DEFAULT_VER);
                 }
                 else {
-                    connection.sendNick(Const.DEFAULT_VER, callListener.getLocalNick(), false);
+                    connection.sendNick(Const.DEFAULT_VER);
                     setChanged();
                     notifyObservers();
                     clearChanged();
@@ -38,5 +42,13 @@ public class CallListenerThread extends Observable implements Runnable {
     }
     public Connection getLastCon(){
         return this.callListener.getLastCon();
+    }
+
+    public void start() {
+        Thread t = new Thread(this);
+        t.start();
+    };
+    public void setNick(String localNick) {
+        callListener.setNick(localNick);
     }
 }
