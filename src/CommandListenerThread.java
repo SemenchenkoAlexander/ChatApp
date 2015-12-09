@@ -10,9 +10,6 @@ public class CommandListenerThread extends Observable implements Runnable {
     private Connection con;
     private Command lastCommand = new Command();
 
-    public CommandListenerThread() {
-        // TODO Auto-generated constructor stub
-    }
 
     public CommandListenerThread(Connection connection) {
         this.disconnected = false;
@@ -20,10 +17,14 @@ public class CommandListenerThread extends Observable implements Runnable {
         this.lastCommand = new Command();
     }
 
-    void setConnection(Connection con) {
-        disconnected = false;
+    private void ownInit(Connection con) {
+        this.disconnected = false;
         this.con = con;
-        lastCommand = new Command();
+        this.lastCommand = new Command();
+    }
+
+    void setConnection(Connection con) {
+        ownInit(con);
     }
 
     Command getLastCommand() {

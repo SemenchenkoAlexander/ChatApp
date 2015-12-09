@@ -37,7 +37,7 @@ public class Caller {
         String ip = remoteAddress.toString(); // "/ip:port"
         try {
             Socket s = new Socket();
-            s.connect(remoteAddress, 1000);
+            s.connect(remoteAddress, Const.PORT);
             return  new Connection(s, localNick);
         } catch (IOException e) {
             System.out.println("Not connected");

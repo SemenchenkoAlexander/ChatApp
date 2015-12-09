@@ -68,6 +68,8 @@ import com.sun.jndi.url.iiopname.iiopnameURLContextFactory;
 
 import java.awt.Color;
 
+import static java.lang.String.*;
+
 public class MainForm extends JFrame {
 
     private JTextArea text = new JTextArea();
@@ -112,14 +114,34 @@ public class MainForm extends JFrame {
         textMessage.setBounds(30, 350, 740, 30);
         textMessage.setFont(text.getFont().deriveFont(20f));
         textMessage.setBorder(BorderFactory.createEmptyBorder(2, 2, 0, 2));
-        textMessage.setEnabled(false);
+
         this.add(textMessage);
 
         send.setText("SEND");
         send.setBounds(770, 350, 100, 30);
         send.setFont(text.getFont().deriveFont(15f));
         send.setBorder(BorderFactory.createEmptyBorder(2, 2, 0, 2));
-        send.setEnabled(false);
+
+        send.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    if (!textMessage.getText().equals("")) {
+                        connection.sendMessage(textMessage.getText());
+                        text.append(textName.getText());
+                        text.append(String.valueOf(new Date()));
+                        text.append(textMessage.getText());
+                        text.setWrapStyleWord(true);
+                        text.setLineWrap(true);
+                        textMessage.setText("");
+
+                    }
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+
+        });
+
         this.add(send);
 
         textName.setBounds(30, 400, 150, 30);
@@ -152,12 +174,10 @@ public class MainForm extends JFrame {
                     login = login.substring(1);
                 textName.setText(login);
                 textName.setEnabled(false);
-                server = new ServerConnection(login);
-                server.connect();
-                server.goOnline();
-                callLT = new CallListenerThread();
-                callLT.start();
-                commandLT = new CommandListenerThread();
+
+                text.append("Your Nick is ");
+                text.append(textName.getText());
+
                 apply.setEnabled(false);
                 connectButton.setEnabled(true);
 
@@ -181,9 +201,11 @@ public class MainForm extends JFrame {
                     try {
                         connection = caller.call();
                         if (connection != null) {
-                            commandLT.setConnection(connection);
-                            commandLT.start();
+//                            commandLT.setConnection(connection);
+//                            commandLT.start();
                             connection.sendNick(textName.getText());
+
+
                         } else{
                             JOptionPane.showMessageDialog(null,
                                     "Couldn't connect this ip ");
@@ -206,6 +228,28 @@ public class MainForm extends JFrame {
         disconnectButton.setBounds(770, 400, 100, 30);
         disconnectButton.setFont(text.getFont().deriveFont(15f));
         disconnectButton.setBorder(BorderFactory.createEmptyBorder(2, 2, 0, 2));
+
+        disconnectButton.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent e) {
+
+                try {
+                    if (connection != null) {
+
+                        connection.disconnect();
+
+                        connection = null;
+                        commandLT.stop();
+ 
+                    }
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+
+            }
+
+        });
+
         this.add(disconnectButton);
 
         remoteAddr.setBounds(325 , 400, 150, 30);
