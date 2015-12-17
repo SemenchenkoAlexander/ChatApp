@@ -1,51 +1,27 @@
 /**
- * Created by Alexander on 27.11.15.
+ * Created by Alexander on 17.12.15.
  */
 public class Command {
 
-  public CommandType type;
-    public Command(){
+    public CommandType type;
+
+    public Command() {
 
     }
 
-    public Command(CommandType type){
-           this.type=type;
+    static enum CommandType {
+        ACCEPT, DISCONNECT, MESSAGE, NICK, REJECT
+
     }
 
-    public void setType(CommandType type) {
-        this.type = type;
+    public Command(CommandType t) {
+        type = t;
     }
 
-    public CommandType getType() {
-        return type;
+    public String toString() {
+        return type.toString();
     }
 
-    public enum CommandType{
-        ACCEPT{
-            @Override
-            public String toString() {
-                return ("Accepted");
-            }
-        },
 
-        DISCONNECT{
-            @Override
-            public String toString() {
-                return("Disconnect");
-            }
-        },
 
-        REJECT{
-            @Override
-            public String toString() {
-                return("Rejected");
-            }
-        },
-        RECEIVE{
-            @Override
-            public String toString() {
-                return("Receved");
-            }
-    }, NULL;
-    }
 }

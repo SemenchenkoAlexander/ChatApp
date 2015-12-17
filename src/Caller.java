@@ -1,76 +1,124 @@
-
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.util.concurrent.TimeUnit;
 
 public class Caller {
     private String localNick;
-    private String ip;
-    private SocketAddress remoteAddress;
+    private InetSocketAddress remoteAddress;
     private String remoteNick;
-
-
-    public Caller() {
-        this("NickName", "127.0.0.1");
-    }
+    private CallStatus callStatus;
 
     public Caller(String localNick) {
-        this(localNick, "127.0.0.1");
+        this.localNick = localNick;
     }
 
-    public Caller(String localNick, SocketAddress remoteAddress) {
-        this.localNick = localNick;
-        ip = "127.0.0.1";
+    public Caller(String localNick, InetSocketAddress remoteAddress) {
+        this(localNick);
         this.remoteAddress = remoteAddress;
     }
 
     public Caller(String localNick, String ip) {
-        this.localNick = localNick;
-        this.ip = ip;
-        remoteAddress = new InetSocketAddress(ip, Const.PORT);
+        this(localNick);
+        remoteAddress = new InetSocketAddress(ip, 28411);
     }
 
-    public Connection call() throws InterruptedException {
-        String ip = remoteAddress.toString(); // "/ip:port"
+    public Connection call() {
+        Connection connection = null;
+
         try {
-            Socket s = new Socket();
-            s.connect(remoteAddress, Const.PORT);
-            return  new Connection(s, localNick);
-        } catch (IOException e) {
-            System.out.println("Not connected");
-            return null;
+            connection = new Connection(new Socket(remoteAddress.getAddress(),
+                    28411));
+
+            connection.sendNickHello(localNick);
+
+            callStatus = receiveCallStatus(connection);
+        } catch (IOException | NullPointerException ex) {
+            callStatus = CallStatus.NOT_ACCESSIBLE;
+        }
+
+        if (callStatus.toString().equals("OK")) {
+            runCommandListenerThreadAndAddObserver(connection);
+            return connection;
+        }
+
+        return null;
+    }
+
+    private CallStatus receiveCallStatus(Connection connection) {
+        try {
+            Command lastCommand = connection.receive();
+
+            if (isNickCommand(lastCommand)) {
+                NickCommand nickCommand = (NickCommand) lastCommand;
+
+                if (nickCommand.isBusy())
+                    return CallStatus.BUSY;
+
+                lastCommand = connection.receive();
+
+                if (isAccept(lastCommand))
+                    return CallStatus.OK;
+
+                return CallStatus.REJECTED;
+            }
+
+            return CallStatus.NO_SERVICE;
+
+        } catch (IOException ex) {
+            return CallStatus.NOT_ACCESSIBLE;
         }
     }
 
-    public String getLocalNick() {
-        return localNick;
+    private boolean isNickCommand(Command lastCommand) {
+        if (lastCommand instanceof NickCommand) {
+            setRemoteNick(((NickCommand) lastCommand).getNick());
+            return true;
+        }
+
+        return false;
     }
 
-    public SocketAddress getRemoteAddess() {
-        return remoteAddress;
+    private boolean isAccept(Command lastCommand) {
+        return lastCommand.toString().equals("ACCEPT");
     }
 
-    // TODO:Where are you getting remoteNick?
-    public String getRemoteNick() {
-        return remoteNick;
+    private void runCommandListenerThreadAndAddObserver(Connection connection) {
+        CommandListenerThread commandListenerThread = new CommandListenerThread(
+                connection);
+        commandListenerThread.addObserver(MainForm.window);
     }
 
     public void setLocalNick(String localNick) {
         this.localNick = localNick;
     }
 
-    public void setRemoteAddress(SocketAddress remoteAddress) {
+    public void setRemoteAddress(InetSocketAddress remoteAddress) {
         this.remoteAddress = remoteAddress;
     }
 
-    @Override
-    public String toString() {
-        return "Caller [localNick=" + localNick + ", ip=" + ip + ", remoteAddress=" + remoteAddress + ", remoteNick="
-                + remoteNick + "]";
+    public void setRemoteNick(String remoteNick) {
+        this.remoteNick = remoteNick;
     }
 
+    public CallStatus getCallStatus() {
+        return callStatus;
+    }
+
+    public String getRemoteNick() {
+        return remoteNick;
+    }
+
+    public SocketAddress getRemoteAddress() {
+        return remoteAddress;
+    }
+
+    public String getLocalNick() {
+        return localNick;
+    }
+
+    public static enum CallStatus {
+        BUSY, NO_SERVICE, NOT_ACCESSIBLE, OK, REJECTED
+    }
 
 }

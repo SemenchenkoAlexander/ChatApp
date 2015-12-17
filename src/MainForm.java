@@ -1,288 +1,412 @@
-import javax.swing.*;
-import javax.swing.border.Border;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-/**
- * Created by Alexander on 27.11.15.
- */
-
 import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.Graphics;
 
 import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JTextField;
-import java.awt.GridLayout;
-import java.awt.List;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.WindowAdapter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.rmi.UnexpectedException;
-import java.util.Date;
-import java.util.Observable;
-import java.util.Observer;
-import java.util.concurrent.TimeUnit;
-
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import java.awt.BorderLayout;
-import javax.swing.JFormattedTextField;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.SwingConstants;
 import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JTextArea;
-import java.awt.Dimension;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Cursor;
 
-import javax.swing.border.BevelBorder;
-import javax.swing.border.LineBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.BorderLayout;
 
-import org.omg.CORBA.portable.UnknownException;
+import javax.swing.JPanel;
+import javax.swing.DefaultListModel;
 
-import com.sun.glass.events.MouseEvent;
-import com.sun.jndi.url.iiopname.iiopnameURLContextFactory;
+import java.awt.GridBagLayout;
 
+import javax.swing.JTextField;
+import javax.swing.JButton;
+
+import java.awt.Insets;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowStateListener;
+import java.io.IOException;
+import java.sql.Date;
+import java.awt.GridBagConstraints;
 import java.awt.Color;
 
-import static java.lang.String.*;
+import javax.swing.text.BadLocationException;
 
-public class MainForm extends JFrame {
+import java.awt.Dimension;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
-    private JTextArea text = new JTextArea();
-    private JTextArea textMessage = new JTextArea();
-    private JTextArea textName = new JTextArea();
-    private JTextArea remoteAddr = new JTextArea();
-    private JTextArea remoteNick = new JTextArea();
+import javax.swing.JList;
+import javax.swing.JOptionPane;
 
-    private JButton send = new JButton();
-    private JButton apply = new JButton();
-    private JButton connectButton = new JButton();
-    private JButton disconnectButton = new JButton();
+import java.util.Observable;
+import java.util.Observer;
 
+import javax.swing.JScrollPane;
+import javax.swing.border.EmptyBorder;
 
+public class MainForm implements Observer {
 
-
-    private CallListener callListener;
-    private Caller caller;
+    private JFrame frame;
+    private JTextField localLog;
+    private JTextField remoteLog;
+    private JTextField remoteAddr;
+    private JTextField msg;
+    private CallListenerThread callListenerThread;
+    public static MainForm window;
+    private DefaultListModel<Object> dlm;
+    private JList<Object> list;
     private Connection connection;
-    private CallListenerThread callLT;
-    private CommandListenerThread commandLT;
-    private boolean forAccept;
-    private ServerConnection server;
 
-    public MainForm(){
-
-        this.setBounds(250, 100, Const.WIDTH, Const.HEIGHT);
-        this.setResizable(false);
-        this.setLayout(null);
-        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
-
-        text.setBounds(30, 30, 840,300);
-        text.setLineWrap(true);
-        text.setWrapStyleWord(true);
-        text.setFont(text.getFont().deriveFont(15f));
-       // text.setBorder(BorderFactory.createEtchedBorder(0));
-        text.setEditable(false);
-        this.add(text);
-
-
-        textMessage.setBounds(30, 350, 740, 30);
-        textMessage.setFont(text.getFont().deriveFont(20f));
-        textMessage.setBorder(BorderFactory.createEmptyBorder(2, 2, 0, 2));
-
-        this.add(textMessage);
-
-        send.setText("SEND");
-        send.setBounds(770, 350, 100, 30);
-        send.setFont(text.getFont().deriveFont(15f));
-        send.setBorder(BorderFactory.createEmptyBorder(2, 2, 0, 2));
-
-        send.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+    public static void main(String[] args) {
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
                 try {
-                    if (!textMessage.getText().equals("")) {
-                        connection.sendMessage(textMessage.getText());
-                        text.append(textName.getText());
-                        text.append(String.valueOf(new Date()));
-                        text.append(textMessage.getText());
-                        text.setWrapStyleWord(true);
-                        text.setLineWrap(true);
-                        textMessage.setText("");
-
-                    }
-                } catch (IOException e1) {
-                    e1.printStackTrace();
+                    window = new MainForm();
+                    window.frame.setVisible(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+            }
+        });
+    }
+
+    public MainForm() {
+        initialize();
+    }
+
+    private void initialize() {
+        frame = new JFrame();
+        frame.getContentPane().setMinimumSize(new Dimension(454, 432));
+        frame.setMinimumSize(new Dimension(470, 470));
+        frame.setBounds(100, 100, 470, 470);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.getContentPane().setLayout(null);
+
+        JPanel panel = new JPanel();
+        panel.setName("panel");
+        panel.setBackground(new Color(255, 255, 255));
+        panel.setOpaque(false);
+        panel.setBounds(25, 25, 404, 382);
+        frame.getContentPane().add(panel);
+        panel.setLayout(new BorderLayout(0, 0));
+
+        JPanel panel_1 = new JPanel();
+        panel_1.setOpaque(false);
+        panel.add(panel_1, BorderLayout.NORTH);
+        GridBagLayout gbl_panel_1 = new GridBagLayout();
+        gbl_panel_1.columnWidths = new int[] { 75, 75, 13, 80, 75, 75, 0 };
+        gbl_panel_1.rowHeights = new int[] { 20, 20, 0 };
+        gbl_panel_1.columnWeights = new double[] { 0.0, 0.0, 1.0, 0.0, 0.0,
+                0.0, Double.MIN_VALUE };
+        gbl_panel_1.rowWeights = new double[] { 1.0, 1.0, Double.MIN_VALUE };
+        panel_1.setLayout(gbl_panel_1);
+
+        JLabel lblNewLabel = new JLabel("local login");
+        GridBagConstraints gbc_lblNewLabel = new GridBagConstraints();
+        gbc_lblNewLabel.insets = new Insets(0, 0, 5, 5);
+        gbc_lblNewLabel.gridx = 0;
+        gbc_lblNewLabel.gridy = 0;
+        panel_1.add(lblNewLabel, gbc_lblNewLabel);
+
+        localLog = new JTextField();
+        GridBagConstraints gbc_localLog = new GridBagConstraints();
+        gbc_localLog.fill = GridBagConstraints.BOTH;
+        gbc_localLog.insets = new Insets(0, 0, 5, 5);
+        gbc_localLog.gridx = 1;
+        gbc_localLog.gridy = 0;
+        panel_1.add(localLog, gbc_localLog);
+        localLog.setColumns(10);
+
+        JLabel lblNewLabel_1 = new JLabel("remote login");
+        GridBagConstraints gbc_lblNewLabel_1 = new GridBagConstraints();
+        gbc_lblNewLabel_1.insets = new Insets(0, 0, 5, 5);
+        gbc_lblNewLabel_1.gridx = 3;
+        gbc_lblNewLabel_1.gridy = 0;
+        panel_1.add(lblNewLabel_1, gbc_lblNewLabel_1);
+
+        remoteLog = new JTextField();
+        GridBagConstraints gbc_remoteLog = new GridBagConstraints();
+        gbc_remoteLog.fill = GridBagConstraints.BOTH;
+        gbc_remoteLog.insets = new Insets(0, 0, 5, 5);
+        gbc_remoteLog.gridx = 4;
+        gbc_remoteLog.gridy = 0;
+        panel_1.add(remoteLog, gbc_remoteLog);
+        remoteLog.setColumns(10);
+
+        JButton disconnectBut = new JButton("Disconnect");
+        GridBagConstraints gbc_DisconBut = new GridBagConstraints();
+        gbc_DisconBut.fill = GridBagConstraints.BOTH;
+        gbc_DisconBut.insets = new Insets(0, 0, 5, 0);
+        gbc_DisconBut.gridx = 5;
+        gbc_DisconBut.gridy = 0;
+        panel_1.add(disconnectBut, gbc_DisconBut);
+
+        JButton applyBut = new JButton("Apply");
+        GridBagConstraints gbc_applyBut = new GridBagConstraints();
+        gbc_applyBut.fill = GridBagConstraints.BOTH;
+        gbc_applyBut.insets = new Insets(0, 0, 0, 5);
+        gbc_applyBut.gridx = 0;
+        gbc_applyBut.gridy = 1;
+        panel_1.add(applyBut, gbc_applyBut);
+
+        JLabel lblNewLabel_2 = new JLabel("remote addr");
+        GridBagConstraints gbc_lblNewLabel_2 = new GridBagConstraints();
+        gbc_lblNewLabel_2.insets = new Insets(0, 0, 0, 5);
+        gbc_lblNewLabel_2.gridx = 3;
+        gbc_lblNewLabel_2.gridy = 1;
+        panel_1.add(lblNewLabel_2, gbc_lblNewLabel_2);
+
+        remoteAddr = new JTextField();
+        GridBagConstraints gbc_remoteAddr = new GridBagConstraints();
+        gbc_remoteAddr.insets = new Insets(0, 0, 0, 5);
+        gbc_remoteAddr.fill = GridBagConstraints.BOTH;
+        gbc_remoteAddr.gridx = 4;
+        gbc_remoteAddr.gridy = 1;
+        panel_1.add(remoteAddr, gbc_remoteAddr);
+        remoteAddr.setColumns(10);
+
+        JButton connectBut = new JButton("Connect");
+        GridBagConstraints gbc_connectBut = new GridBagConstraints();
+        gbc_connectBut.fill = GridBagConstraints.BOTH;
+        gbc_connectBut.gridx = 5;
+        gbc_connectBut.gridy = 1;
+        panel_1.add(connectBut, gbc_connectBut);
+
+        JPanel panel_2 = new JPanel();
+        panel_2.setOpaque(false);
+        panel.add(panel_2, BorderLayout.SOUTH);
+        GridBagLayout gbl_panel_2 = new GridBagLayout();
+        gbl_panel_2.columnWidths = new int[] { 331, 75, 0 };
+        gbl_panel_2.rowHeights = new int[] { 23, 0 };
+        gbl_panel_2.columnWeights = new double[] { 1.0, 0.0, Double.MIN_VALUE };
+        gbl_panel_2.rowWeights = new double[] { 0.0, Double.MIN_VALUE };
+        panel_2.setLayout(gbl_panel_2);
+
+        msg = new JTextField();
+        GridBagConstraints gbc_msg = new GridBagConstraints();
+        gbc_msg.fill = GridBagConstraints.BOTH;
+        gbc_msg.insets = new Insets(0, 0, 0, 5);
+        gbc_msg.gridx = 0;
+        gbc_msg.gridy = 0;
+        panel_2.add(msg, gbc_msg);
+        msg.setColumns(10);
+
+        final JButton sendBut = new JButton("Send");
+        GridBagConstraints gbc_sendBut = new GridBagConstraints();
+        gbc_sendBut.fill = GridBagConstraints.BOTH;
+        gbc_sendBut.gridx = 1;
+        gbc_sendBut.gridy = 0;
+        panel_2.add(sendBut, gbc_sendBut);
+
+        JPanel panel_3 = new JPanel();
+        panel_3.setOpaque(false);
+        panel_3.setBorder(new EmptyBorder(5, 0, 5, 0));
+        panel.add(panel_3, BorderLayout.CENTER);
+        panel_3.setLayout(new BorderLayout(0, 0));
+
+        JScrollPane scrollPane = new JScrollPane();
+        panel_3.add(scrollPane, BorderLayout.CENTER);
+
+        list = new JList<Object>();
+        scrollPane.setViewportView(list);
+
+        frame.getContentPane().addComponentListener(new ComponentListener() {
+
+            public void componentResized(ComponentEvent e) {
+                panel.setSize(frame.getContentPane().getWidth() - 50, frame
+                        .getContentPane().getHeight() - 50);
+
+            }
+
+            public void componentMoved(ComponentEvent e) {
+            }
+
+            public void componentShown(ComponentEvent e) {
+
+            }
+
+            public void componentHidden(ComponentEvent e) {
+
+            }
+        });
+
+        frame.addWindowStateListener(new WindowStateListener() {
+
+            public void windowStateChanged(WindowEvent e) {
+                panel.setSize(frame.getWidth() - 66, frame.getHeight() - 88);
             }
 
         });
 
-        this.add(send);
-
-        textName.setBounds(30, 400, 150, 30);
-        textName.setFont(text.getFont().deriveFont(20f));
-        textName.setBorder(BorderFactory.createEmptyBorder(2,2,0,2));
-        this.add(textName);
-
-        apply.setText("Apply");
-        apply.setBounds(180, 400, 100, 30);
-        apply.setFont(text.getFont().deriveFont(15f));
-        apply.setBorder(BorderFactory.createEmptyBorder(2, 2,0, 2 ));
-
-        apply.addActionListener(new ActionListener() {
+        dlm = new DefaultListModel<Object>();
+        sendBut.addActionListener(new ActionListener() {
+            @SuppressWarnings("deprecation")
             public void actionPerformed(ActionEvent e) {
-                String login;
-                if (textName.getText().equals("")) {
-                    login = "unnamed";
-                } else
-                    login = textName.getText();
-                boolean isCorrectLogin = false;
-                for (int i = 0; i < login.toCharArray().length; i++)
-                    if (login.toCharArray()[i] != ' ') {
-                        isCorrectLogin = true;
-                        break;
-                    }
-                if (!isCorrectLogin) {
-                    login = "unnamed";
-                }
-                while (login.charAt(0) == ' ')
-                    login = login.substring(1);
-                textName.setText(login);
-                textName.setEnabled(false);
-
-                text.append("Your Nick is ");
-                text.append(textName.getText());
-
-                apply.setEnabled(false);
-                connectButton.setEnabled(true);
-
-                callLT.setNick(login);
-        }
-        });
-    
-        this.add(apply);
-
-        connectButton.setText("Connect");
-        connectButton.setBounds(475, 400, 100, 30);
-        connectButton.setFont(text.getFont().deriveFont(15f));
-        connectButton.setBorder(BorderFactory.createEmptyBorder(2, 2, 0, 2));
-
-        connectButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                if (remoteAddr.getText() != "") {
-                    String login;
-                    login = textName.getText();
-                    caller = new Caller(login, remoteAddr.getText());
-                    try {
-                        connection = caller.call();
-                        if (connection != null) {
-//                            commandLT.setConnection(connection);
-//                            commandLT.start();
-                            connection.sendNick(textName.getText());
-
-
-                        } else{
-                            JOptionPane.showMessageDialog(null,
-                                    "Couldn't connect this ip ");
+                if ((localLog.getText().equals(""))
+                        || (remoteLog.getText().equals(""))
+                        || (remoteAddr.getText().equals(""))) {
+                    JOptionPane.showMessageDialog(frame,
+                            "Not enough data for sending the message");
+                } else {
+                    String name = new String();
+                    if (localLog.getText().length() > 10) {
+                        try {
+                            name = localLog.getText(0, 10);
+                        } catch (BadLocationException ignore) {
                         }
-                    } catch (InterruptedException e1) {
+                        name = name + "...";
+                    } else
+                        name = localLog.getText();
+                    long date = System.currentTimeMillis();
+                    dlm.addElement("<html>" + name + " "
+                            + new Date(date).toLocaleString() + ":<br>"
+                            + msg.getText() + " </span></html>");
+                    list.setModel(dlm);
 
-                        e1.printStackTrace();
-                    } catch (UnsupportedEncodingException e1) {
-                        e1.printStackTrace();
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
+                    try {
+                        connection.sendMessage(msg.getText());
+                        System.out.println("Sended");
+                    } catch (IOException ex) {
+                        System.out.println("No internet connection");
                     }
 
                 }
+                msg.setText("");
+                msg.requestFocus();
             }
         });
-        this.add(connectButton);
 
-        disconnectButton.setText("Disconnect");
-        disconnectButton.setBounds(770, 400, 100, 30);
-        disconnectButton.setFont(text.getFont().deriveFont(15f));
-        disconnectButton.setBorder(BorderFactory.createEmptyBorder(2, 2, 0, 2));
+        msg.addKeyListener(new KeyListener() {
 
-        disconnectButton.addActionListener(new ActionListener() {
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    sendBut.doClick();
+                }
+            }
 
+            @Override
+            public void keyReleased(KeyEvent arg0) {
+
+            }
+
+            @Override
+            public void keyTyped(KeyEvent arg0) {
+
+            }
+        });
+
+        applyBut.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
-
-                try {
-                    if (connection != null) {
-
-                        connection.disconnect();
-
-                        connection = null;
-                        commandLT.stop();
- 
-                    }
-                } catch (IOException e1) {
-                    e1.printStackTrace();
+                if (callListenerThread == null) {
+                    System.out.println("Added obs");
+                    callListenerThread = new CallListenerThread(
+                            new CallListener(localLog.getText()));
+                    callListenerThread.addObserver(window);
+                } else {
+                    callListenerThread.setLocalNick(localLog.getText());
                 }
+            }
+        });
 
+        connectBut.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                final Caller caller = new Caller(localLog.getText(), remoteAddr
+                        .getText());
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            connection = caller.call();
+
+                            if (caller.getCallStatus().toString().equals("OK"))
+                                remoteLog.setText(caller.getRemoteNick());
+                            else if (caller.getCallStatus().toString()
+                                    .equals("BUSY")) {
+                                JOptionPane.showMessageDialog(frame, "User "
+                                        + caller.getRemoteNick() + " is busy");
+                            } else {
+                                JOptionPane.showMessageDialog(frame, "User "
+                                        + caller.getRemoteNick()
+                                        + " has declined your call.");
+                                connection = null;
+                            }
+
+                        } catch (Exception ex) { // Show message that remote
+                            // user is offline or wrong
+                            // ip
+                            JOptionPane
+                                    .showMessageDialog(
+                                            frame,
+                                            "Connection error. User with ip does not exist or there is no Internet connection");
+                            connection = null;
+                        }
+                    }
+                }).start();
             }
 
         });
 
-        this.add(disconnectButton);
+        disconnectBut.addActionListener(e -> {
+            if (connection != null)
+                try {
+                    remoteLog.setText("");
+                    remoteAddr.setText("");
+                    connection.disconnect();
+                    if (callListenerThread != null)
+                        callListenerThread.setBusy(false);
 
-        remoteAddr.setBounds(325 , 400, 150, 30);
-        remoteAddr.setFont(text.getFont().deriveFont(20f));
-        remoteAddr.setBorder(BorderFactory.createEmptyBorder(2, 2, 0, 2));
-        this.add(remoteAddr);
-
-        remoteNick.setBounds(620, 400, 150, 30);
-        remoteNick.setFont(text.getFont().deriveFont(20f));
-        remoteNick.setBorder(BorderFactory.createEmptyBorder(2, 2, 0, 2));
-
-        this.add(remoteNick);
-
-        this.setVisible(true);
-
+                } catch (IOException ignored) {
+                }
+        });
     }
 
-
-
-
-    // GETTERS
-
-    // LISTENERS
-
-    public void addApplyListener(ActionListener act){
-
+    public boolean question(String nick, String remoteAddress) {
+        Object[] options = { "Receive", "Reject" };
+        int dialogResult = JOptionPane.showOptionDialog(frame, "User " + nick
+                + " with ip " + remoteAddress
+                + " is trying to connect with you", "Recieve connection",
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+                options, options[0]);
+        if (dialogResult == JOptionPane.YES_OPTION) {
+            System.out.println("Receive");
+            remoteLog.setText(nick);
+            remoteAddr.setText(remoteAddress);
+            return true; // Receive
         }
+        System.out.println("Rejected");
+        return false; // Reject
 
-
-    public void addConnectListener(ActionListener act){
-        this.connectButton.addActionListener(act);
     }
 
+    @SuppressWarnings("deprecation")
+    @Override
+    public void update(Observable o, Object arg) {
+        if (arg instanceof CallListener) {
+            CallListener c = (CallListener) arg;
+            callListenerThread.suspend();
+            callListenerThread.setReceive(question(c.getRemoteNick(),
+                    c.getRemoteAddress()));
+            callListenerThread.resume();
+        } else if (arg instanceof Connection) {
+            connection = (Connection) arg;
+            System.out.println("Output connection created");
+        } else {
+            System.out.println("Receive message");
+            System.out.println(arg.toString());
+            Command command = (Command) arg;
+            System.out.println(command.toString());
 
-
+            if (command instanceof MessageCommand) {
+                dlm.addElement("<html>" + remoteLog.getText() + " "
+                        + new Date(System.currentTimeMillis()).toLocaleString()
+                        + ":<br>" + arg.toString() + " </span></html>");
+                list.setModel(dlm);
+            }
+            else
+            if (command.toString().toLowerCase().equals("disconnect")) {
+                remoteLog.setText("");
+                remoteAddr.setText("");
+                if (callListenerThread != null)
+                    callListenerThread.setBusy(false);
+            }
+        }
+    }
 }

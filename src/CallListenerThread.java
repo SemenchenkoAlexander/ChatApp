@@ -1,54 +1,128 @@
-/**
- * Created by Alexander on 03.12.15.
- */
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Observable;
-/*
-CLASS THAT IS LOOKING FORWARD FOR AN INCOMING CONNECTION
- */
-public class CallListenerThread extends Observable implements Runnable {
-    private CallListener callListener;
+import java.util.Observer;
 
-    public CallListenerThread(CallListener callListener){
-        this.callListener = callListener;
+public class CallListenerThread implements Runnable {
+    private CallListener call;
+    private volatile boolean isClose;
+    private Thread t;
+    private volatile boolean  isReceive, flag;
+
+    private Observable myObservable = new Observable(){
+        public void notifyObservers(Object arg) {
+            setChanged();
+            super.notifyObservers(arg);
+        }
+    };
+
+    public CallListenerThread(){
+        t = new Thread(this);
+        isClose = false;
+        t.start();
     }
 
-    public CallListenerThread() {
-
+    public CallListenerThread(CallListener call){
+        this.call = call;
+        t = new Thread(this);
+        isClose = false;
+        t.start();
     }
 
-    @Override
+    public SocketAddress getListenAddress(){
+        return call.getListenAddress();
+    }
+
+    public String getLocalNick (){
+        return call.getLocalNick();
+    }
+
+    public SocketAddress getRemoteAddress(){
+        return null;
+    }
+
+    public boolean isBusy (){
+        return call.isBusy();
+    }
+
+    public void setBusy (boolean isBusy){
+        call.setBusy(isBusy);
+    }
+
+    public void setListenAddress(InetSocketAddress newAddress){
+        call.setListenAddress(newAddress);
+    }
+
+    public void setLocalNick (String newNick){
+        call.setLocalNick(newNick);
+    }
+
     public void run() {
-        while (Thread.currentThread().isAlive()){
-            try{
-                Connection connection = callListener.getConnection();
-                if (callListener.isBusy()){
-                    connection.sendNick(Const.DEFAULT_VER);
+        while (!isClose) {
+            try {
+                System.out.println("Before");
+                Connection connection = call.getConnection();
+                System.out.println("Get");
+                myObservable.notifyObservers(call);
+                waitAnswer();
+                System.out.println("continued");
+
+                if (!isReceive) {
+                    call.setBusy(false);
+                    System.out.println("False");
+                    if (connection == null) {
+                    }
+                    else {
+                        connection.reject();
+                    }
                 }
-                else {
-                    connection.sendNick(Const.DEFAULT_VER);
-                    setChanged();
-                    notifyObservers();
-                    clearChanged();
+                else{
+                    System.out.println("OK");
+                    connection.accept();
+                    myObservable.notifyObservers(connection);
+
+                    CommandListenerThread commandListenerThread = new CommandListenerThread(connection);
+                    commandListenerThread.addObserver(MainForm.window);
                 }
-            }
-            catch (IOException e){
-                e.printStackTrace();
+
+            } catch (IOException e) {
             }
         }
     }
-    public void setBusy(boolean busy){
-        this.callListener.setBusy(busy);
-    }
-    public Connection getLastCon(){
-        return this.callListener.getLastCon();
+
+    public void stop(){
+        isClose = true;
     }
 
-    public void start() {
-        Thread t = new Thread(this);
-        t.start();
-    };
-    public void setNick(String localNick) {
-        callListener.setNick(localNick);
+    public void setReceive(boolean isReceive){
+        this.isReceive = isReceive;
+    }
+
+    public void suspend(){
+        flag = false;
+    }
+
+    private synchronized void waitAnswer(){
+        if (!flag) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                System.out.println(t + " Thread interrupted: " + e);
+            }
+        }
+    }
+
+    public synchronized void resume(){
+        flag = true;
+        notify();
+    }
+
+    public void addObserver(Observer observer){
+        myObservable.addObserver(observer);
+    }
+
+    public String getRemoteNick (){
+        return call.getRemoteNick();
     }
 }
